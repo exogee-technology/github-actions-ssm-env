@@ -41,7 +41,7 @@ const parseValue = (val) => {
 };
 
 const setEnvironmentVar = (key, value, maskValues) => {
-	console.log(`Setting var: '${key}': '${value}'`);
+	core.info(`Setting var: '${key}': '${value}'`);
 
 	if (maskValues) core.setSecret(value);
 	core.exportVariable(key, value);

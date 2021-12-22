@@ -43,7 +43,7 @@ const parseValue = (val) => {
 };
 
 const setEnvironmentVar = (key, value, maskValues) => {
-	core.debug(`Setting var: '${key.toUpperCase()}': '${value}'`);
+	core.debug(`Setting var: '${key.toUpperCase()}'`);
 
 	if (maskValues) core.setSecret(value);
 	core.exportVariable(key.toUpperCase(), value);

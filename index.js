@@ -4,10 +4,12 @@ const ssm = require('./ssm-helper');
 const run_action = async () => {
 	try {
 		const applicationName = core.getInput('application-name', { required: true });
-		const decryption = core.getInput('decryption') === 'true';
-		const maskValues = (core.getInput('mask-values') ?? 'true') === 'true';
+		const decryption = core.getBooleanInput('decryption');
+		const maskValues = core.getBooleanInput('mask-values');
 
 		const params = await ssm.getParameters({ applicationName, decryption });
+		core.debug(`Got ${params.length} params.`);
+
 		for (const param of params) {
 			const parsedValue = parseValue(param.Value);
 			if (typeof parsedValue === 'object') {
@@ -41,10 +43,10 @@ const parseValue = (val) => {
 };
 
 const setEnvironmentVar = (key, value, maskValues) => {
-	core.info(`Setting var: '${key}': '${value}'`);
+	core.debug(`Setting var: '${key.toUpperCase()}': '${value}'`);
 
 	if (maskValues) core.setSecret(value);
-	core.exportVariable(key, value);
+	core.exportVariable(key.toUpperCase(), value);
 };
 
 run_action();

@@ -1,0 +1,16 @@
+name: 'AWS SSM parameters to environment variables'
+description: 'load AWS SSM Parameters into environment variables'
+author: 'Kevin Brown <kevin.brown@exogee.com>'
+branding:
+  icon: 'cloud'
+  color: 'orange'
+inputs:
+  application-name:
+    description: 'Used as the root for the SSM lookup'
+    required: true
+  decryption:
+    description: 'Whether the parameter must be decrypted or not'
+    required: false
+runs:
+  using: 'node14'
+  main: 'index.js'

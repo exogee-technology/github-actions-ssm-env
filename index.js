@@ -5,6 +5,7 @@ const run_action = async () => {
 	try {
 		const applicationName = core.getInput('application-name', { required: true });
 		const decryption = core.getInput('decryption') === 'true';
+		const maskValues = (core.getInput('mask-values') ?? 'true') === 'true';
 
 		const params = await ssm.getParameters({ applicationName, decryption });
 		for (const param of params) {
@@ -14,7 +15,7 @@ const run_action = async () => {
 				core.debug(`parsedValue: ${JSON.stringify(parsedValue)}`);
 				// Assume basic JSON structure
 				for (var key in parsedValue) {
-					setEnvironmentVar(key, parsedValue[key]);
+					setEnvironmentVar(key, parsedValue[key], maskValues);
 				}
 			} else {
 				core.debug(`parsedValue: ${parsedValue}`);
@@ -22,7 +23,7 @@ const run_action = async () => {
 				var split = param.Name.split('/');
 				var envVarName = split[split.length - 1];
 				core.debug(`Using end of ssmPath for env var name: ${envVarName}`);
-				setEnvironmentVar(envVarName, parsedValue);
+				setEnvironmentVar(envVarName, parsedValue, maskValues);
 			}
 		}
 	} catch (e) {
@@ -39,8 +40,8 @@ const parseValue = (val) => {
 	}
 };
 
-const setEnvironmentVar = (key, value) => {
-	core.setSecret(value);
+const setEnvironmentVar = (key, value, maskValues) => {
+	if (maskValues) core.setSecret(value);
 	core.exportVariable(key, value);
 };
 

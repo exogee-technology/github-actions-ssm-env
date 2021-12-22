@@ -9,7 +9,10 @@ inputs:
     description: 'Used as the root for the SSM lookup'
     required: true
   decryption:
-    description: 'Whether the parameter must be decrypted or not'
+    description: 'Whether the parameter must be decrypted or not. Default: false'
+    required: false
+  mask-values:
+    description: 'Whether to mark the results as secrets so they get masked in log output. Default: true'
     required: false
 runs:
   using: 'node16'

@@ -1,7 +1,7 @@
 const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
 const core = require('@actions/core');
 
-const requestsPerSecond = 2; // Technically this is 40, but we may not be the only thing hitting SSM. Let's be nice.
+const requestsPerSecond = parseInt(core.getInput('requests-per-second'));
 const rateLimit = Math.ceil(1000 / requestsPerSecond);
 
 const wait = (durationInMs) => new Promise((resolve) => setTimeout(resolve, durationInMs));

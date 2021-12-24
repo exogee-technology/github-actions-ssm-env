@@ -1,7 +1,12 @@
-const AWS = require('aws-sdk');
+const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
 const core = require('@actions/core');
 
-const ssmPath = (applicationName) => {
+const requestsPerSecond = 2; // Technically this is 40, but we may not be the only thing hitting SSM. Let's be nice.
+const rateLimit = Math.ceil(1000 / requestsPerSecond);
+
+const wait = (durationInMs) => new Promise((resolve) => setTimeout(resolve, durationInMs));
+
+const ssmPaths = (applicationName) => {
 	if (!applicationName) throw new Error('No applicationName.');
 	if (!process.env.GITHUB_REF) throw new Error('No GITHUB_REF environment variable.');
 
@@ -10,26 +15,53 @@ const ssmPath = (applicationName) => {
 		branch = 'development';
 	}
 
-	return `/${applicationName}/${branch}`;
+	return {
+		sharedPath: `/${applicationName}/shared`,
+		environmentPath: `/${applicationName}/${branch}`,
+	};
+};
+
+const getAllParametersAtPath = async ({ ssm, path, decryption }) => {
+	const results = [];
+	let done = false;
+	let NextToken;
+
+	while (!done) {
+		await wait(rateLimit);
+		const result = await ssm.send(
+			new GetParametersByPathCommand({
+				Path: path,
+				Recursive: true,
+				WithDecryption: decryption,
+				MaxResults: 10, // Maximum from AWS.
+				NextToken,
+			})
+		);
+		NextToken = result.NextToken;
+
+		results.push(...result.Parameters);
+
+		done = result.Parameters.length < 10;
+	}
+
+	return results;
 };
 
 const getParameters = async ({ applicationName, decryption }) => {
 	if (!process.env.AWS_DEFAULT_REGION)
 		throw new Error('No AWS_DEFAULT_REGION environment variable.');
 
-	AWS.config.update({ region: process.env.AWS_DEFAULT_REGION });
-	const ssm = new AWS.SSM();
+	const ssm = new SSMClient({ region: process.env.AWS_DEFAULT_REGION });
 
-	core.debug(`Getting variables at SSM path '${ssmPath(applicationName)}'`);
+	const { sharedPath, environmentPath } = ssmPaths(applicationName);
 
-	const { Parameters } = await ssm
-		.getParametersByPath({
-			Path: ssmPath(applicationName),
-			WithDecryption: decryption,
-		})
-		.promise();
+	core.debug(`Getting variables at SSM path '${sharedPath}'`);
+	const shared = await getAllParametersAtPath({ ssm, path: sharedPath, decryption });
 
-	return Parameters;
+	core.debug(`Getting variables at SSM path '${environmentPath}'`);
+	const environment = await getAllParametersAtPath({ ssm, path: environmentPath, decryption });
+
+	return [...shared, ...environment];
 };
 
 module.exports = { getParameters };

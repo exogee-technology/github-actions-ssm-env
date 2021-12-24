@@ -16,10 +16,6 @@ inputs:
     description: 'Whether to mark the results as secrets so they get masked in log output.'
     required: false
     default: true
-  requests-per-second:
-    description: 'AWS rate limits the SSM API at 40 requests per second. If you might be hitting this API from other things, tune this down to avoid rate limiting errors.'
-    required: false
-    default: '40'
 runs:
   using: 'node16'
   main: 'index.js'

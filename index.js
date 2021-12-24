@@ -12,6 +12,7 @@ const run_action = async () => {
 		core.debug(`Got ${params.length} params.`);
 
 		for (const param of params) {
+			core.debug(`Parsing value for parameter '${param.Name}'.`);
 			const parsedValue = parseValue(param.Value);
 			if (typeof parsedValue === 'object') {
 				// Assume basic JSON structure

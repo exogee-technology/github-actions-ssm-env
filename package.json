@@ -1,11 +1,14 @@
 {
-  "name": "github-actions-ssm-env",
-  "version": "1.0.0",
-  "main": "index.js",
-  "repository": "https://github.com/exogee-technology/github-actions-ssm-env.git",
-  "license": "MIT",
-  "dependencies": {
-    "@actions/core": "1.6.0",
-    "@aws-sdk/client-ssm": "3.45.0"
-  }
+	"name": "github-actions-ssm-env",
+	"version": "1.0.0",
+	"main": "index.js",
+	"repository": "https://github.com/exogee-technology/github-actions-ssm-env.git",
+	"license": "MIT",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"dependencies": {
+		"@actions/core": "1.6.0",
+		"@aws-sdk/client-ssm": "3.45.0"
+	}
 }

@@ -1,10 +1,6 @@
-const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
+const { SSMClient, paginateGetParametersByPath } = require('@aws-sdk/client-ssm');
 const core = require('@actions/core');
-
-const requestsPerSecond = parseInt(core.getInput('requests-per-second'));
-const rateLimit = Math.ceil(1000 / requestsPerSecond);
-
-const wait = (durationInMs) => new Promise((resolve) => setTimeout(resolve, durationInMs));
+// const core = require('./core-stub');
 
 const ssmPaths = (applicationName) => {
 	if (!applicationName) throw new Error('No applicationName.');
@@ -23,25 +19,17 @@ const ssmPaths = (applicationName) => {
 
 const getAllParametersAtPath = async ({ ssm, path, decryption }) => {
 	const results = [];
-	let done = false;
-	let NextToken;
+	const paginator = paginateGetParametersByPath(
+		{ client: ssm },
+		{
+			Path: path,
+			Recursive: true,
+			WithDecryption: decryption,
+		}
+	);
 
-	while (!done) {
-		await wait(rateLimit);
-		const result = await ssm.send(
-			new GetParametersByPathCommand({
-				Path: path,
-				Recursive: true,
-				WithDecryption: decryption,
-				MaxResults: 10, // Maximum from AWS.
-				NextToken,
-			})
-		);
-		NextToken = result.NextToken;
-
-		results.push(...result.Parameters);
-
-		done = result.Parameters.length < 10;
+	for await (const page of paginator) {
+		results.push(...page.Parameters);
 	}
 
 	return results;

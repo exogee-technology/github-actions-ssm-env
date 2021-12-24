@@ -1,5 +1,6 @@
-const core = require('@actions/core');
 const ssm = require('./ssm-helper');
+const core = require('@actions/core');
+// const core = require('./core-stub');
 
 const run_action = async () => {
 	try {

@@ -14,14 +14,11 @@ const run_action = async () => {
 		for (const param of params) {
 			const parsedValue = parseValue(param.Value);
 			if (typeof parsedValue === 'object') {
-				// Assume JSON object
-				core.debug(`parsedValue: ${JSON.stringify(parsedValue)}`);
 				// Assume basic JSON structure
 				for (var key in parsedValue) {
 					setEnvironmentVar(key, parsedValue[key], maskValues);
 				}
 			} else {
-				core.debug(`parsedValue: ${parsedValue}`);
 				// Set environment variable with ssmPath name as the env variable
 				var split = param.Name.split('/');
 				var envVarName = split[split.length - 1];

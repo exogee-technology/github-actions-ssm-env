@@ -1,4 +1,5 @@
 # github-actions-ssm-env
+
 Allows retrieval of SSM parameters per environment based on a GitHub branch name.
 
 ## Concepts
@@ -12,11 +13,13 @@ Anything after the first two portions of the path is considered part of the vari
 Also, the action assumes that branches called `master` or `main` correspond to your development environment. This is not currently configureable but it could be quite easily, we just don't have a need to make this configurable ourselves, so haven't built it yet.
 
 ## Usage
+
 The action takes several options:
 
 - `application-name`: This is effectively a prefix for the SSM keys. All keys are prefixed with this value like `/${application-name}/${environment-name}/VARIABLE`. This variable is required.
 - `decryption`: Whether the SSM parameters must be decrypted or not. This is passed to the AWS SSM API. This parameter is optional and defaults to `false`.
 - `mask-values`: GitHub Actions has the option to mask values in logging output. We assume most of what this action is handling is secret, so we default to turning this on for everything. If you want to disable this behaviour, you can set this value to `false`. Optional, defaults to `true`.
+- `safe-values`: Because you're probably also storing things like `true`, `false`, `1`, etc in this tool, which aren't actually secret, and we don't want our logs to log times like `2022-0***-06T00:29:***0.24***Z`, these values are excluded from the masking when masking is enabled. This is a JSON string which is expected to be an array when parsed. Optional, defaults to `["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "true", "false"]`.
 
 Also, `AWS_DEFAULT_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` should be set as environment variables so this action is able to connect to the correct SSM API and authenticate.
 
@@ -26,7 +29,7 @@ Also, `AWS_DEFAULT_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` sho
 name: main-workflow
 on:
   push:
-    branches: ["master", "staging", "production"]
+    branches: ['master', 'staging', 'production']
 
 jobs:
   deploy:
@@ -49,7 +52,7 @@ jobs:
 If the following parameters are configured in AWS Systems Manager in `ap-southeast-2`:
 
 | Name                                        | Type         | Value                                              |
-|---------------------------------------------|--------------|----------------------------------------------------|
+| ------------------------------------------- | ------------ | -------------------------------------------------- |
 | /my-amazing-application/shared/GLOBAL_VALUE | SecureString | this is my global value                            |
 | /my-amazing-application/development/API_URL | SecureString | https://development-api.my-amazing-application.com |
 | /my-amazing-application/staging/API_URL     | SecureString | https://staging-api.my-amazing-application.com     |
@@ -58,13 +61,16 @@ If the following parameters are configured in AWS Systems Manager in `ap-southea
 Then you'll get the following environment variables added when running the action on each of the following branches:
 
 `master` / `main`:
+
 - GLOBAL_VALUE="this is my global value"
 - API_URL="https://development-api.my-amazing-application.com"
 
 `staging`:
+
 - GLOBAL_VALUE="this is my global value"
 - API_URL="https://staging-api.my-amazing-application.com"
 
 `production`:
+
 - GLOBAL_VALUE="this is my global value"
 - API_URL="https://api.my-amazing-application.com"

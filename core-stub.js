@@ -8,6 +8,8 @@ const getInput = (inputName) => {
 			return 'true';
 		case 'requests-per-second':
 			return '40';
+		case 'safe-values':
+			return '["0", "1", "true", "false"]';
 	}
 };
 
@@ -18,5 +20,6 @@ module.exports = {
 	setSecret: () => {},
 	exportVariable: (key, value) => console.log(`Exporting variable '${key}': '${value}'`),
 	getInput,
+	getMultilineInput: getInput,
 	getBooleanInput: (inputName) => Boolean(getInput(inputName)),
 };
